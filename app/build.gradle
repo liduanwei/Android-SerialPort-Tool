@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 
+def cfg = rootProject.ext.android
+def libs = rootProject.ext.libraries
 android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -17,6 +19,32 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
+    }
+
+    signingConfigs {
+        config {
+            keyAlias 'winds'
+            keyPassword '039468'
+            storeFile file('../winds.jks')
+            storePassword '039468'
+        }
+    }
+
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ["libs"]
         }
     }
 }
@@ -41,7 +69,7 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
     implementation 'com.github.licheedev.SomeLibrary:myutils:0.02'
-    
+
     // 串口
     implementation 'com.github.licheedev.Android-SerialPort-API:serialport:1.0.1'
 
@@ -52,4 +80,30 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.1.1'
     // 选文件的
     implementation 'ru.bartwell:exfilepicker:2.1'
+
+    //基础库
+    implementation(name: 'common-library-1.0.29.2-simple', ext: 'aar')
+    implementation(name: 'commonbiz-1.0.0.10-snapshot', ext: 'aar')
+    implementation libs["rateview"]
+
+    //rxjava
+    implementation libs["rxjava"]
+    implementation libs["rxlifecycle2"]
+    implementation(libs["rxandroid"]) {
+        exclude group: ' io.reactivex.rxjava2'
+    }
+
+    /*glide*/
+    implementation libs["glide"]
+    annotationProcessor libs["glide"]
+    //网络
+    implementation libs["lzy"]
+    implementation libs["okhttp3"]
+
+    /*eventbus*/
+    implementation libs["eventbus"]
+    /*崩溃处理 */
+    implementation 'com.tonystark.android:defense_crash:2.0.0'
+    /*gson*/
+    implementation libs["gson"]
 }

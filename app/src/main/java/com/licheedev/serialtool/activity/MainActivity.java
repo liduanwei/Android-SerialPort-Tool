@@ -10,8 +10,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+
 import butterknife.BindView;
 import butterknife.OnClick;
+
 import com.licheedev.serialtool.R;
 import com.licheedev.serialtool.activity.base.BaseActivity;
 import com.licheedev.serialtool.comn.Device;
@@ -85,8 +87,8 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemSele
         // 设备
         mDevices = serialPortFinder.getAllDevicesPath();
         if (mDevices.length == 0) {
-            mDevices = new String[] {
-                getString(R.string.no_serial_device)
+            mDevices = new String[]{
+                    getString(R.string.no_serial_device)
             };
         }
         // 波特率
@@ -103,15 +105,12 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemSele
      * 初始化下拉选项
      */
     private void initSpinners() {
-
-        ArrayAdapter<String> deviceAdapter =
-            new ArrayAdapter<String>(this, R.layout.spinner_default_item, mDevices);
+        ArrayAdapter<String> deviceAdapter = new ArrayAdapter<>(this, R.layout.spinner_default_item, mDevices);
         deviceAdapter.setDropDownViewResource(R.layout.spinner_item);
         mSpinnerDevices.setAdapter(deviceAdapter);
         mSpinnerDevices.setOnItemSelectedListener(this);
 
-        ArrayAdapter<String> baudrateAdapter =
-            new ArrayAdapter<String>(this, R.layout.spinner_default_item, mBaudrates);
+        ArrayAdapter<String> baudrateAdapter = new ArrayAdapter<>(this, R.layout.spinner_default_item, mBaudrates);
         baudrateAdapter.setDropDownViewResource(R.layout.spinner_item);
         mSpinnerBaudrate.setAdapter(baudrateAdapter);
         mSpinnerBaudrate.setOnItemSelectedListener(this);
@@ -120,7 +119,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemSele
         mSpinnerBaudrate.setSelection(mBaudrateIndex);
     }
 
-    @OnClick({ R.id.btn_open_device, R.id.btn_send_data, R.id.btn_load_list })
+    @OnClick({R.id.btn_open_device, R.id.btn_send_data, R.id.btn_load_list})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_open_device:
@@ -154,7 +153,6 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemSele
             SerialPortManager.instance().close();
             mOpened = false;
         } else {
-
             // 保存配置
             PrefHelper.getDefault().saveInt(PreferenceKeys.SERIAL_PORT_DEVICES, mDeviceIndex);
             PrefHelper.getDefault().saveInt(PreferenceKeys.BAUD_RATE, mBaudrateIndex);
@@ -175,11 +173,8 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemSele
      * @param isSerialPortOpened
      */
     private void updateViewState(boolean isSerialPortOpened) {
-
         int stringRes = isSerialPortOpened ? R.string.close_serial_port : R.string.open_serial_port;
-
         mBtnOpenDevice.setText(stringRes);
-
         mSpinnerDevices.setEnabled(!isSerialPortOpened);
         mSpinnerBaudrate.setEnabled(!isSerialPortOpened);
         mBtnSendData.setEnabled(isSerialPortOpened);

@@ -1,7 +1,6 @@
 package com.licheedev.serialtool.fragment;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import com.licheedev.serialtool.R;
 import com.licheedev.serialtool.comn.message.IMessage;
 import com.licheedev.serialtool.comn.message.LogManager;
@@ -27,32 +27,26 @@ public class LogFragment extends Fragment {
 
     private Button mBtnAutoEnd;
 
-    @Nullable
+
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-        @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_log, container, false);
 
-        mBtnClear = (Button) view.findViewById(R.id.btn_clear_log);
-        mBtnClear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 清空列表
-                LogManager.instance().clear();
-                updateList();
-            }
+        mBtnClear = view.findViewById(R.id.btn_clear_log);
+        mBtnClear.setOnClickListener(v -> {
+            // 清空列表
+            LogManager.instance().clear();
+            updateList();
         });
-        mBtnAutoEnd = (Button) view.findViewById(R.id.btn_auto_end);
-        mBtnAutoEnd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                LogManager.instance().changAutoEnd();
-                updateAutoEndButton();
-            }
+        mBtnAutoEnd = view.findViewById(R.id.btn_auto_end);
+        mBtnAutoEnd.setOnClickListener(v -> {
+            LogManager.instance().changAutoEnd();
+            updateAutoEndButton();
         });
 
-        mLvLogs = (ListView) view.findViewById(R.id.lv_logs);
+        mLvLogs = view.findViewById(R.id.lv_logs);
         mAdapter = new LogAdapter();
         mLvLogs.setAdapter(mAdapter);
 

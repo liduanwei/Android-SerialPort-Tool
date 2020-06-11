@@ -7,21 +7,35 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+
 import butterknife.BindView;
 import butterknife.OnClick;
+
 import com.licheedev.myutils.LogPlus;
+import com.licheedev.serialtool.MainHttp;
 import com.licheedev.serialtool.R;
 import com.licheedev.serialtool.activity.base.BaseActivity;
 import com.licheedev.serialtool.comn.SerialPortManager;
 import com.licheedev.serialtool.model.Command;
+import com.licheedev.serialtool.model.server_api.AppCommandListResponse;
+import com.licheedev.serialtool.model.server_api.AppInfoResponse;
+import com.licheedev.serialtool.model.server_api.BaseResponse;
 import com.licheedev.serialtool.util.BaseListAdapter;
 import com.licheedev.serialtool.util.CommandParser;
+import com.licheedev.serialtool.util.DeviceHelper;
 import com.licheedev.serialtool.util.ListViewHolder;
 import com.licheedev.serialtool.util.ToastUtil;
+
+import cn.dlc.commonlibrary.okgo.rx.OkObserver;
 import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+
+import io.reactivex.schedulers.Schedulers;
 import ru.bartwell.exfilepicker.ExFilePicker;
 import ru.bartwell.exfilepicker.data.ExFilePickerResult;
 
@@ -105,7 +119,7 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
         mFilePicker.setChoiceType(ExFilePicker.ChoiceType.FILES);
     }
 
-    @OnClick({ R.id.btn_load_list })
+    @OnClick({R.id.btn_load_list})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_load_list:
@@ -127,8 +141,7 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
             Command item = getItem(position);
 
             String comment = String.valueOf(position + 1);
-            comment =
-                TextUtils.isEmpty(item.getComment()) ? comment : comment + " " + item.getComment();
+            comment = TextUtils.isEmpty(item.getComment()) ? comment : comment + " " + item.getComment();
 
             holder.setText(R.id.tv_comment, comment);
             holder.setText(R.id.tv_command, item.getCommand());
@@ -138,5 +151,73 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
         public int getItemLayoutId(int viewType) {
             return R.layout.item_load_command_list;
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadCommandsFromServer();
+    }
+
+    private void loadCommandsFromServer() {
+        AppInfoResponse appInfo = DeviceHelper.getAppInfo();
+        if (appInfo == null) {
+            loadAppInfo();
+            return;
+        }
+
+        MainHttp.get()
+                .getAppCommandList(appInfo.data.id, 1, 100)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new OkObserver<AppCommandListResponse>() {
+                    @Override
+                    public void onSuccess(AppCommandListResponse response) {
+                        parseToCommands(response);
+                    }
+
+                    @Override
+                    public void onFailure(String s, Throwable throwable) {
+                        LogPlus.d(s);
+                    }
+                });
+    }
+
+    private void parseToCommands(AppCommandListResponse response) {
+        if (response.data.data == null || response.data.data.size() == 0) {
+            return;
+        }
+        List<Command> commands = new ArrayList<>(response.data.data.size());
+        for (AppCommandListResponse.DataBeanX.DataBean dataBean : response.data.data) {
+            Command command = new Command();
+            command.setCommand(dataBean.command_hex);
+            command.setComment("无注释");
+            commands.add(command);
+        }
+        if (this.mAdapter.getData() == null) {
+            this.mAdapter.setNewData(commands);
+        } else {
+            this.mAdapter.getData().addAll(commands);
+        }
+    }
+
+
+    private void loadAppInfo() {
+        MainHttp.get()
+                .getAppInfo("fycz")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new OkObserver<AppInfoResponse>() {
+                    @Override
+                    public void onSuccess(AppInfoResponse response) {
+                        DeviceHelper.saveAppInfo(response);
+                        loadCommandsFromServer();
+                    }
+
+                    @Override
+                    public void onFailure(String s, Throwable throwable) {
+                        LogPlus.d(s);
+                    }
+                });
     }
 }
