@@ -11,7 +11,7 @@
     app:cardUseCompatPadding="true">
 
     <LinearLayout
-        android:layout_width="250dp"
+        android:layout_width="@dimen/normal_500dp"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
@@ -23,7 +23,7 @@
             android:layout_marginRight="26dp"
             android:layout_marginTop="16dp"
             android:gravity="center"
-            android:textColor="@color/textPrimary"
+            android:textColor="@color/black"
             android:textSize="@dimen/normal_30dp"
             tools:text="APP SID" />
 
@@ -34,13 +34,14 @@
             android:layout_marginRight="26dp"
             android:textSize="@dimen/normal_30dp"
             android:background="@drawable/shap_corner_5_b_gray"
-            tools:hint="App SID" />
+            android:textColorHint="@color/colorVeryLightBlue"
+            tools:hint="please type App SID" />
 
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginTop="16dp"
+            android:layout_height="@dimen/normal_80dp"
+            android:layout_marginTop="@dimen/normal_50dp"
             android:orientation="horizontal">
 
             <TextView
@@ -60,7 +61,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@color/colorVeryLightBlue"
+                android:background="@color/colorPrimary"
                 android:gravity="center"
                 android:text="确定"
                 android:textColor="@color/white"

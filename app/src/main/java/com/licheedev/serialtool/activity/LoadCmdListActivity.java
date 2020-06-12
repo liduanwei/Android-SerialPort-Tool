@@ -9,12 +9,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 
 import com.bumptech.glide.Glide;
 import com.licheedev.myutils.LogPlus;
+import com.licheedev.serialtool.App;
 import com.licheedev.serialtool.MainHttp;
 import com.licheedev.serialtool.R;
 import com.licheedev.serialtool.activity.base.BaseActivity;
@@ -241,6 +243,10 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
                 .subscribe(new OkObserver<AppInfoResponse>() {
                     @Override
                     public void onSuccess(AppInfoResponse response) {
+                        if (response.code != 200) {
+                            Toast.makeText(App.instance(), response.msg, Toast.LENGTH_SHORT).show();
+                            return;
+                        }
                         DeviceHelper.saveAppInfo(response);
                         setShowAppInfo(response);
                         loadCommandsFromServer();
@@ -249,6 +255,7 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
                     @Override
                     public void onFailure(String s, Throwable throwable) {
                         LogPlus.d(s);
+                        Toast.makeText(App.instance(), s, Toast.LENGTH_SHORT).show();
                     }
                 });
     }

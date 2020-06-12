@@ -151,7 +151,8 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemSele
 
         SerialPortManager.instance().sendCommand(text);
 
-        /*新增串口指令*/
+        /*todo 记录到本地串口指令*/
+
     }
 
     /**

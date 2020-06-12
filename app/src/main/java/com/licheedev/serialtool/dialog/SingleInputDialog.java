@@ -74,7 +74,7 @@ public class SingleInputDialog extends Dialog implements View.OnClickListener {
             tvTips = findViewById(R.id.tv_tips);
         }
         tvTips.setText(tips);
-        editInput.setText("APP SID");
+        editInput.setText("");
     }
 
     public static interface OnConfirmClickListener {

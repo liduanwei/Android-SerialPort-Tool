@@ -8,5 +8,6 @@
     <string name="send_data">发送命令</string>
     <string name="input_data">输入命令</string>
     <string name="load_cmd_list">加载命令列表</string>
+    <string name="load_cmd_list_from_local">加载本地命令列表</string>
     <string name="verify_input_empty">输入内容不能为空</string>
 </resources>

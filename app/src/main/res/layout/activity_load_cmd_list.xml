@@ -23,7 +23,7 @@
             <Button
                 android:id="@+id/btn_load_list"
                 style="@style/ButtonStyle"
-                android:text="@string/load_cmd_list" />
+                android:text="@string/load_cmd_list_from_local" />
 
 
             <ListView
