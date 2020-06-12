@@ -15,6 +15,7 @@ import butterknife.BindView;
 import butterknife.OnClick;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.licheedev.myutils.LogPlus;
 import com.licheedev.serialtool.App;
 import com.licheedev.serialtool.MainHttp;
@@ -326,7 +327,11 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
         }
         mTvAppName.setText(response.data.name);
         mTvSid.setText(response.data.sid);
-        Glide.with(LoadCmdListActivity.this).load(response.data.icon).into(mIvAppIcon);
+
+        Glide.with(LoadCmdListActivity.this)
+                .load(response.data.icon)
+                .placeholder(R.mipmap.ic_launcher_round)
+                .into(mIvAppIcon);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

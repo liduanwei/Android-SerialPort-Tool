@@ -111,13 +111,10 @@ public class App extends Application {
         OkGoWrapper.instance()
                 /*错误转换*/
                 .setErrorTranslator(new MyErrorTranslator())
-                // 拦截网络错误，一般是登录过期啥的
+                /*拦截网络错误，一般是登录过期啥的*/
                 .setErrorInterceptor(tr -> {
                     if (tr instanceof ApiException) {
-                        ApiException ex = (ApiException) tr;
-                        if (ex.getCode() == 401) {
-                            return true;
-                        }
+                        /**/
                     }
                     return false;
                 })
