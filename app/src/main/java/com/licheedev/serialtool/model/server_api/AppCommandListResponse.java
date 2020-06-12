@@ -54,6 +54,7 @@ public class AppCommandListResponse {
             public String updated_at;
             public String app_id;
             public String command_hex;
+            public String comment;
         }
     }
 }

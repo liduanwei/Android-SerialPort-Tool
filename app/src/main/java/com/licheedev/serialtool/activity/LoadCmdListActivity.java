@@ -6,16 +6,20 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 
+import com.bumptech.glide.Glide;
 import com.licheedev.myutils.LogPlus;
 import com.licheedev.serialtool.MainHttp;
 import com.licheedev.serialtool.R;
 import com.licheedev.serialtool.activity.base.BaseActivity;
 import com.licheedev.serialtool.comn.SerialPortManager;
+import com.licheedev.serialtool.dialog.SingleInputDialog;
 import com.licheedev.serialtool.model.Command;
 import com.licheedev.serialtool.model.server_api.AppCommandListResponse;
 import com.licheedev.serialtool.model.server_api.AppInfoResponse;
@@ -47,9 +51,20 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
     @BindView(R.id.list_view)
     ListView mListView;
 
+    @BindView(R.id.tv_app_name)
+    TextView mTvAppName;
+
+    @BindView(R.id.tv_sid)
+    TextView mTvSid;
+
+    @BindView(R.id.iv_app_icon)
+    ImageView mIvAppIcon;
+
     private ExFilePicker mFilePicker;
     private CommandParser mParser;
     private InnerAdapter mAdapter;
+
+    private SingleInputDialog singleInputDialog;
 
     @Override
     protected int getLayoutId() {
@@ -67,6 +82,9 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
         mListView.setOnItemClickListener(this);
         mAdapter = new InnerAdapter();
         mListView.setAdapter(mAdapter);
+
+        /*默认显示APP本地图标,加载了服务器端配置之后显示服务器端图标*/
+        mIvAppIcon.setImageResource(R.mipmap.ic_launcher_round);
     }
 
     @Override
@@ -119,13 +137,30 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
         mFilePicker.setChoiceType(ExFilePicker.ChoiceType.FILES);
     }
 
-    @OnClick({R.id.btn_load_list})
+    @OnClick({R.id.btn_load_list, R.id.tv_sid})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_load_list:
                 mFilePicker.start(this, REQUEST_FILE);
                 break;
+            case R.id.tv_sid:
+                showAppSidInputDialog();
+                break;
         }
+    }
+
+    private void showAppSidInputDialog() {
+        if (singleInputDialog == null) {
+            singleInputDialog = new SingleInputDialog(this);
+            singleInputDialog.setOnConfirmClickListener(input -> {
+                if (TextUtils.isEmpty(input)) {
+                    return;
+                }
+                DeviceHelper.saveAppSid(input);
+                loadAppInfo(input);
+            });
+        }
+        singleInputDialog.show("");
     }
 
     @Override
@@ -162,10 +197,10 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
     private void loadCommandsFromServer() {
         AppInfoResponse appInfo = DeviceHelper.getAppInfo();
         if (appInfo == null) {
-            loadAppInfo();
+            showAppSidInputDialog();
             return;
         }
-
+        setShowAppInfo(appInfo);
         MainHttp.get()
                 .getAppCommandList(appInfo.data.id, 1, 100)
                 .subscribeOn(Schedulers.io())
@@ -191,7 +226,7 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
         for (AppCommandListResponse.DataBeanX.DataBean dataBean : response.data.data) {
             Command command = new Command();
             command.setCommand(dataBean.command_hex);
-            command.setComment("无注释");
+            command.setComment(dataBean.comment);
             commands.add(command);
         }
         if (this.mAdapter.getData() == null) {
@@ -202,15 +237,16 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
     }
 
 
-    private void loadAppInfo() {
+    private void loadAppInfo(String sid) {
         MainHttp.get()
-                .getAppInfo("fycz")
+                .getAppInfo(sid)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new OkObserver<AppInfoResponse>() {
                     @Override
                     public void onSuccess(AppInfoResponse response) {
                         DeviceHelper.saveAppInfo(response);
+                        setShowAppInfo(response);
                         loadCommandsFromServer();
                     }
 
@@ -219,5 +255,14 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
                         LogPlus.d(s);
                     }
                 });
+    }
+
+    private void setShowAppInfo(AppInfoResponse response) {
+        if (response == null || response.data == null) {
+            return;
+        }
+        mTvAppName.setText(response.data.name);
+        mTvSid.setText(response.data.sid);
+        Glide.with(LoadCmdListActivity.this).load(response.data.icon).into(mIvAppIcon);
     }
 }

@@ -12,6 +12,7 @@ public class Urls {
     public static final String userLoginPath = "/v1/backenduser/login";
     public static final String appInfoPath = "/v1/app/info";
     public static final String appCommandListPath = "/v1/app/command/list";
+    public static final String createCommandPath = "/v1/command/add";
 
     public static String getFullUrl(String apiPath) {
         return API_HOST_URL + apiPath;

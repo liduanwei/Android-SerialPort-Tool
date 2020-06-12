@@ -17,6 +17,7 @@ import io.reactivex.Observable;
 
 import static com.licheedev.serialtool.Urls.appCommandListPath;
 import static com.licheedev.serialtool.Urls.appInfoPath;
+import static com.licheedev.serialtool.Urls.createCommandPath;
 import static com.licheedev.serialtool.Urls.getFullUrl;
 import static com.licheedev.serialtool.Urls.userLoginPath;
 
@@ -69,6 +70,19 @@ public class MainHttp {
         params.put("pageSize", pageSize);
         String json = GsonUtil.getInstance().parseObjToJsonStr(params);
         return mOkGoWrapper.rxPostJson(getFullUrl(appCommandListPath), null, json, new RawBeanConvert<>(AppCommandListResponse.class), null);
+    }
+
+
+    /**
+     * 新增APP串口指令
+     */
+    public Observable<AppCommandListResponse> createAppCommand(String appId, String commandHex, String comment) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("app_id", appId);
+        params.put("command_hex", commandHex);
+        params.put("comment", comment);
+        String json = GsonUtil.getInstance().parseObjToJsonStr(params);
+        return mOkGoWrapper.rxPostJson(getFullUrl(createCommandPath), null, json, new RawBeanConvert<>(AppCommandListResponse.class), null);
     }
 
 }

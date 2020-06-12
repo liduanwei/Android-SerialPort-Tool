@@ -18,6 +18,10 @@
     <color name="white">#ffffffff</color>
     <color name="color_888888">#888888</color>
     <color name="color_20ffffff">#20ffffff</color>
-    
+
+
+    <color name="textPrimary">#312E27</color>
+
+    <color name="background">#F5F5F5</color>
 
 </resources>

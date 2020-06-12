@@ -13,12 +13,19 @@ import android.widget.Spinner;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+import cn.dlc.commonlibrary.okgo.rx.OkObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
+import com.licheedev.myutils.LogPlus;
+import com.licheedev.serialtool.MainHttp;
 import com.licheedev.serialtool.R;
 import com.licheedev.serialtool.activity.base.BaseActivity;
 import com.licheedev.serialtool.comn.Device;
 import com.licheedev.serialtool.comn.SerialPortManager;
+import com.licheedev.serialtool.model.server_api.AppInfoResponse;
 import com.licheedev.serialtool.util.AllCapTransformationMethod;
+import com.licheedev.serialtool.util.DeviceHelper;
 import com.licheedev.serialtool.util.PrefHelper;
 import com.licheedev.serialtool.util.ToastUtil;
 import com.licheedev.serialtool.util.constant.PreferenceKeys;
@@ -143,6 +150,8 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemSele
         }
 
         SerialPortManager.instance().sendCommand(text);
+
+        /*新增串口指令*/
     }
 
     /**
@@ -183,7 +192,6 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemSele
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
         // Spinner 选择监听
         switch (parent.getId()) {
             case R.id.spinner_devices:
@@ -200,5 +208,27 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemSele
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
         // 空实现
+    }
+
+
+    private void loadAppInfo() {
+        if (DeviceHelper.getAppSid() == null) {
+            return;
+        }
+        MainHttp.get()
+                .getAppInfo(DeviceHelper.getAppSid())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new OkObserver<AppInfoResponse>() {
+                    @Override
+                    public void onSuccess(AppInfoResponse response) {
+                        DeviceHelper.saveAppInfo(response);
+                    }
+
+                    @Override
+                    public void onFailure(String s, Throwable throwable) {
+                        LogPlus.d(s);
+                    }
+                });
     }
 }

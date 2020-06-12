@@ -14,6 +14,14 @@ public class DeviceHelper {
         PrefUtil.init(App.instance());
     }
 
+    //保存
+    public static void saveAppSid(String sid) {
+        PrefUtil.getDefault().edit().putString("sid", sid).apply();
+    }
+
+    public static String getAppSid() {
+        return PrefUtil.getDefault().getString("sid", null);
+    }
 
     //保存
     public static void saveAppInfo(AppInfoResponse appInfo) {
