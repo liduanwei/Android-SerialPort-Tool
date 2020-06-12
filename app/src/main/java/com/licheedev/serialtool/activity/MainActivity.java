@@ -23,12 +23,16 @@ import com.licheedev.serialtool.R;
 import com.licheedev.serialtool.activity.base.BaseActivity;
 import com.licheedev.serialtool.comn.Device;
 import com.licheedev.serialtool.comn.SerialPortManager;
+import com.licheedev.serialtool.model.Command;
 import com.licheedev.serialtool.model.server_api.AppInfoResponse;
 import com.licheedev.serialtool.util.AllCapTransformationMethod;
 import com.licheedev.serialtool.util.DeviceHelper;
 import com.licheedev.serialtool.util.PrefHelper;
 import com.licheedev.serialtool.util.ToastUtil;
 import com.licheedev.serialtool.util.constant.PreferenceKeys;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.licheedev.serialtool.R.array.baudrates;
 
@@ -152,7 +156,16 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemSele
         SerialPortManager.instance().sendCommand(text);
 
         /*todo 记录到本地串口指令*/
+        addCommandToLocal(text);
+    }
 
+    private void addCommandToLocal(String text) {
+        List<Command> localCommands = DeviceHelper.getCommands(DeviceHelper.getAppSid());
+        if (localCommands == null) {
+            localCommands = new ArrayList<>();
+        }
+        localCommands.add(new Command(text, "History"));
+        DeviceHelper.saveCommands(localCommands, DeviceHelper.getAppSid());
     }
 
     /**

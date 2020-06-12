@@ -21,18 +21,24 @@ import com.licheedev.serialtool.MainHttp;
 import com.licheedev.serialtool.R;
 import com.licheedev.serialtool.activity.base.BaseActivity;
 import com.licheedev.serialtool.comn.SerialPortManager;
+import com.licheedev.serialtool.dialog.DoubleInputDialog;
 import com.licheedev.serialtool.dialog.SingleInputDialog;
 import com.licheedev.serialtool.model.Command;
+import com.licheedev.serialtool.model.eventbus.RequiredAuthorizationEvent;
 import com.licheedev.serialtool.model.server_api.AppCommandListResponse;
 import com.licheedev.serialtool.model.server_api.AppInfoResponse;
-import com.licheedev.serialtool.model.server_api.BaseResponse;
+import com.licheedev.serialtool.model.server_api.UserLoginResponse;
 import com.licheedev.serialtool.util.BaseListAdapter;
 import com.licheedev.serialtool.util.CommandParser;
 import com.licheedev.serialtool.util.DeviceHelper;
 import com.licheedev.serialtool.util.ListViewHolder;
 import com.licheedev.serialtool.util.ToastUtil;
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import cn.dlc.commonlibrary.okgo.rx.OkObserver;
+import cn.dlc.commonlibrary.utils.BindEventBus;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -45,6 +51,7 @@ import io.reactivex.schedulers.Schedulers;
 import ru.bartwell.exfilepicker.ExFilePicker;
 import ru.bartwell.exfilepicker.data.ExFilePickerResult;
 
+@BindEventBus
 public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnItemClickListener {
 
     public static final int REQUEST_FILE = 233;
@@ -66,7 +73,8 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
     private CommandParser mParser;
     private InnerAdapter mAdapter;
 
-    private SingleInputDialog singleInputDialog;
+    private SingleInputDialog appSidInputDialog;
+    private DoubleInputDialog loginFormInputDialog;
 
     @Override
     protected int getLayoutId() {
@@ -152,9 +160,9 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
     }
 
     private void showAppSidInputDialog() {
-        if (singleInputDialog == null) {
-            singleInputDialog = new SingleInputDialog(this);
-            singleInputDialog.setOnConfirmClickListener(input -> {
+        if (appSidInputDialog == null) {
+            appSidInputDialog = new SingleInputDialog(this);
+            appSidInputDialog.setOnConfirmClickListener(input -> {
                 if (TextUtils.isEmpty(input)) {
                     return;
                 }
@@ -162,7 +170,7 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
                 loadAppInfo(input);
             });
         }
-        singleInputDialog.show("");
+        appSidInputDialog.show("");
     }
 
     @Override
@@ -174,7 +182,6 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
     private static class InnerAdapter extends BaseListAdapter<Command> {
         @Override
         protected void inflateItem(ListViewHolder holder, int position) {
-
             Command item = getItem(position);
 
             String comment = String.valueOf(position + 1);
@@ -197,12 +204,20 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
     }
 
     private void loadCommandsFromServer() {
+        if (TextUtils.isEmpty(DeviceHelper.getUserToken())) {
+            showUserLoginFormDialog();
+            return;
+        }
         AppInfoResponse appInfo = DeviceHelper.getAppInfo();
         if (appInfo == null) {
             showAppSidInputDialog();
             return;
         }
         setShowAppInfo(appInfo);
+        /*优先加载本地的指令*/
+        //        if (DeviceHelper.getCommands(DeviceHelper.getAppSid()) != null) {
+        //            mAdapter.setNewData(DeviceHelper.getCommands(DeviceHelper.getAppSid()));
+        //        }
         MainHttp.get()
                 .getAppCommandList(appInfo.data.id, 1, 100)
                 .subscribeOn(Schedulers.io())
@@ -221,17 +236,62 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
     }
 
     private void parseToCommands(AppCommandListResponse response) {
+        if (response.data == null) {
+            return;
+        }
         if (response.data.data == null || response.data.data.size() == 0) {
             return;
         }
-        List<Command> commands = new ArrayList<>(response.data.data.size());
+        List<Command> commands = new ArrayList<>();
+        List<Command> localCommands = DeviceHelper.getCommands(DeviceHelper.getAppSid());
+        if (localCommands != null) {
+            for (Command command : localCommands) {
+                if (!commands.contains(command)) {
+                    commands.add(command);
+                }
+            }
+        }
         for (AppCommandListResponse.DataBeanX.DataBean dataBean : response.data.data) {
             Command command = new Command();
             command.setCommand(dataBean.command_hex);
             command.setComment(dataBean.comment);
-            commands.add(command);
+            /*不包含才添加*/
+            if (!commands.contains(command)) {
+                commands.add(command);
+            }
         }
-        this.mAdapter.setNewData(commands);
+
+        if (mAdapter.getData() == null || mAdapter.getData().size() == 0) {
+            this.mAdapter.setNewData(commands);
+        } else {
+            this.mAdapter.getData().addAll(commands);
+            this.mAdapter.notifyDataSetChanged();
+        }
+
+        saveCommandsToLocal(commands);
+    }
+
+    private void saveCommandsToLocal(List<Command> commands) {
+        if (commands == null || commands.size() == 0) {
+            return;
+        }
+        /*todo 保留已有的本地的命令*/
+        List<Command> commandList = new ArrayList<>();
+        List<Command> localCommands = DeviceHelper.getCommands(DeviceHelper.getAppSid());
+        if (localCommands != null) {
+            for (Command command : localCommands) {
+                if (!commandList.contains(command)) {
+                    commandList.add(command);
+                }
+            }
+        }
+        for (Command command : commands) {
+            if (!commandList.contains(command)) {
+                commandList.add(command);
+            }
+        }
+
+        DeviceHelper.saveCommands(commandList, DeviceHelper.getAppSid());
     }
 
 
@@ -267,5 +327,42 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
         mTvAppName.setText(response.data.name);
         mTvSid.setText(response.data.sid);
         Glide.with(LoadCmdListActivity.this).load(response.data.icon).into(mIvAppIcon);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onRequiredAuthorizationEvent(RequiredAuthorizationEvent requiredAuthorizationEvent) {
+        showUserLoginFormDialog();
+    }
+
+    private void showUserLoginFormDialog() {
+        if (loginFormInputDialog == null) {
+            loginFormInputDialog = new DoubleInputDialog(this);
+        }
+        loginFormInputDialog.setCancelable(false);
+        loginFormInputDialog.setOnConfirmClickListener(this::doUserLogin);
+        loginFormInputDialog.show();
+    }
+
+    private void doUserLogin(String account, String password) {
+        MainHttp.get()
+                .doUserLogin(account, password)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new OkObserver<UserLoginResponse>() {
+                    @Override
+                    public void onSuccess(UserLoginResponse response) {
+                        if (response.code != 200) {
+                            Toast.makeText(App.instance(), response.msg, Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        Toast.makeText(App.instance(), "登录成功", Toast.LENGTH_SHORT).show();
+                        DeviceHelper.saveUserToken(response.data.jwt);
+                    }
+
+                    @Override
+                    public void onFailure(String s, Throwable throwable) {
+                        Toast.makeText(App.instance(), s, Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

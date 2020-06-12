@@ -41,4 +41,11 @@
         <item name="android:textColor">@color/textPrimary</item>
     </style>
 
+    <style name="Divider_Horizontal_Margin">
+        <item name="android:layout_height">0.5dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:background">@color/divider</item>
+        <item name="android:layout_marginLeft">12dp</item>
+        <item name="android:layout_marginRight">12dp</item>
+    </style>
 </resources>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/normal_500dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/shap_corner_6_f_white"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/normal_12dp"
+        android:text="账号登录"
+        android:textSize="@dimen/normal_30dp"
+        android:textColor="@color/textPrimary" />
+
+    <EditText
+        android:id="@+id/edit_account"
+        android:layout_width="@dimen/normal_300dp"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:hint="请输入账号"
+        android:maxLength="20"
+        android:padding="@dimen/normal_16dp"
+        android:textColor="@color/textPrimary"
+        android:textColorHint="@color/textThirdly"
+        android:textSize="@dimen/normal_30dp" />
+
+    <View style="@style/Divider_Horizontal_Margin" />
+
+    <EditText
+        android:id="@+id/edit_password"
+        android:layout_width="@dimen/normal_300dp"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:hint="请输入密码"
+        android:maxLength="13"
+        android:padding="@dimen/normal_16dp"
+        android:textColor="@color/textPrimary"
+        android:textColorHint="@color/textThirdly"
+        android:textSize="@dimen/normal_30dp" />
+
+    <View style="@style/Divider_Horizontal_Margin" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/normal_48dp"
+        android:layout_marginTop="@dimen/normal_20dp">
+
+        <TextView
+            android:id="@+id/tv_cancel"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="取消"
+            android:background="@color/background"
+            android:textSize="@dimen/normal_30dp" />
+
+        <TextView
+            android:id="@+id/tv_confirm"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/colorPrimary"
+            android:gravity="center"
+            android:text="确认"
+            android:textColor="@color/white"
+            android:textSize="@dimen/normal_30dp" />
+    </LinearLayout>
+</LinearLayout>

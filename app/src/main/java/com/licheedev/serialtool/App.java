@@ -4,16 +4,21 @@ import android.app.Application;
 import android.os.Handler;
 import android.util.Log;
 
+import com.dlc.commonbiz.base.util.GsonUtil;
 import com.licheedev.myutils.LogPlus;
 import com.licheedev.serialtool.base.http.MyErrorTranslator;
 //import com.licheedev.serialtool.util.OkGoWrapper;
+import com.licheedev.serialtool.model.eventbus.RequiredAuthorizationEvent;
 import com.licheedev.serialtool.model.server_api.AppInfoResponse;
+import com.licheedev.serialtool.model.server_api.BaseResponse;
 import com.licheedev.serialtool.model.server_api.UserLoginResponse;
 import com.licheedev.serialtool.util.DeviceHelper;
 import com.licheedev.serialtool.util.PrefHelper;
 import com.lzy.okgo.cookie.CookieJarImpl;
 import com.lzy.okgo.cookie.store.SPCookieStore;
 
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.nio.charset.Charset;
 
@@ -69,7 +74,6 @@ public class App extends Application {
                 .addInterceptor(chain -> {
                     Request.Builder builder1 = chain.request().newBuilder();
                     String token = DeviceHelper.getUserToken();
-                    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1OTE5NjA2ODUsInVzZXJfaWQiOjQ1NDU4NDEyNjkxODM2NTE4NH0.g41B1mtl4zwZ_iUqnxQMPNJSwONfb2tZ8zNQzqq3ZO0";
                     if (token != null) {
                         builder1.addHeader("Authorization", token);
                     }
@@ -95,18 +99,23 @@ public class App extends Application {
                     ResponseBody body = response.peekBody(1024 * 1024);
                     String ss = body.string();
                     Log.e("retrofitResponse", ss);
+                    BaseResponse baseResponse = GsonUtil.getInstance().parseJsonStrToObj(ss, BaseResponse.class);
+                    if (baseResponse != null && baseResponse.getCode() == 401) {
+                        /**/
+                        EventBus.getDefault().post(new RequiredAuthorizationEvent());
+                    }
                     return response;
                 });
         OkGoWrapper.initOkGo(this, builder.build());
-        OkGoWrapper.instance().setErrorTranslator(new MyErrorTranslator())
+
+        OkGoWrapper.instance()
+                /*错误转换*/
+                .setErrorTranslator(new MyErrorTranslator())
                 // 拦截网络错误，一般是登录过期啥的
                 .setErrorInterceptor(tr -> {
                     if (tr instanceof ApiException) {
                         ApiException ex = (ApiException) tr;
                         if (ex.getCode() == 401) {
-                            // 登录信息过期，请重新登录
-                            /*todo */
-                            doUserLogin();
                             return true;
                         }
                     }
@@ -115,21 +124,5 @@ public class App extends Application {
                 .setRequestLogger(new JsonRequestLogger(BuildConfig.DEBUG, 30));
     }
 
-    private void doUserLogin() {
-        MainHttp.get()
-                .doUserLogin("dlc_app", "123456")
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new OkObserver<UserLoginResponse>() {
-                    @Override
-                    public void onSuccess(UserLoginResponse response) {
-                        DeviceHelper.saveUserToken(response.data.jwt);
-                    }
 
-                    @Override
-                    public void onFailure(String s, Throwable throwable) {
-                        LogPlus.d(s);
-                    }
-                });
-    }
 }

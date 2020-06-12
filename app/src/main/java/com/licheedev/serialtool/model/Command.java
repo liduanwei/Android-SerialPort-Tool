@@ -32,4 +32,18 @@ public class Command {
     public void setComment(String comment) {
         this.comment = comment;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        if (obj == this)
+            return true;
+        if (!(obj instanceof Command)) {
+            return false;
+        }
+        Command command = (Command) obj;
+
+        return command.getCommand().equals(this.command);
+    }
 }

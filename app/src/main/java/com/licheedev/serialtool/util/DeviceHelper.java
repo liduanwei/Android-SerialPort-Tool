@@ -1,8 +1,11 @@
 package com.licheedev.serialtool.util;
 
+import com.licheedev.serialtool.model.Command;
 import com.licheedev.serialtool.model.server_api.AppInfoResponse;
 import com.dlc.commonbiz.base.util.GsonUtil;
 import com.licheedev.serialtool.App;
+
+import java.util.List;
 
 import cn.dlc.commonlibrary.utils.PrefUtil;
 
@@ -42,5 +45,19 @@ public class DeviceHelper {
 
     public static String getUserToken() {
         return PrefUtil.getDefault().getString("token", null);
+    }
+
+    public static void saveCommands(List<Command> commands, String appId) {
+        PrefUtil.getDefault().edit().putString("commands_" + appId, GsonUtil.getInstance().parseObjToJsonStr(commands)).apply();
+    }
+
+    public static List<Command> getCommands(String appId) {
+        String info = PrefUtil.getDefault().getString("commands_" + appId, null);
+        try {
+            return GsonUtil.getInstance().fromJsonArray(info, Command.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
