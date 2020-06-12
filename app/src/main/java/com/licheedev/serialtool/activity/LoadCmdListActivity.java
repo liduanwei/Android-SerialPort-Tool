@@ -229,11 +229,7 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
             command.setComment(dataBean.comment);
             commands.add(command);
         }
-        if (this.mAdapter.getData() == null) {
-            this.mAdapter.setNewData(commands);
-        } else {
-            this.mAdapter.getData().addAll(commands);
-        }
+        this.mAdapter.setNewData(commands);
     }
 
 
