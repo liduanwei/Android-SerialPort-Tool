@@ -243,7 +243,6 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
         if (response.data.data == null || response.data.data.size() == 0) {
             return;
         }
-        this.mAdapter.setNewData(new ArrayList<>());
         List<Command> commands = new ArrayList<>();
         List<Command> localCommands = DeviceHelper.getCommands(DeviceHelper.getAppSid());
         if (localCommands != null) {
