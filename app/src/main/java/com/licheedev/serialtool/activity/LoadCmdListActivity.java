@@ -243,6 +243,7 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
         if (response.data.data == null || response.data.data.size() == 0) {
             return;
         }
+        this.mAdapter.setNewData(new ArrayList<>());
         List<Command> commands = new ArrayList<>();
         List<Command> localCommands = DeviceHelper.getCommands(DeviceHelper.getAppSid());
         if (localCommands != null) {
@@ -262,12 +263,8 @@ public class LoadCmdListActivity extends BaseActivity implements AdapterView.OnI
             }
         }
 
-        if (mAdapter.getData() == null || mAdapter.getData().size() == 0) {
-            this.mAdapter.setNewData(commands);
-        } else {
-            this.mAdapter.getData().addAll(commands);
-            this.mAdapter.notifyDataSetChanged();
-        }
+        this.mAdapter.setNewData(commands);
+        this.mAdapter.notifyDataSetChanged();
 
         saveCommandsToLocal(commands);
     }
